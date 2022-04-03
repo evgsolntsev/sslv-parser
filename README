@@ -1,0 +1,5 @@
+Usage:
+
+pip3 install argparse folium requests
+./main.py # parse ss.lv and dumps data to `json.dump`
+./draw.py # filters data and draw map in `map.html`
