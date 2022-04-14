@@ -1,5 +1,6 @@
 import json
-from datetime import date
+import os
+from datetime import date, datetime
 
 import folium
 from flask import Flask
@@ -11,7 +12,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def root():
-    return render_template("root.html")
+    return render_template("root.html", date=get_latest_date())
 
 office_coordinates=[56.9615532443497, 24.112381565832365]
 BASE_URL = "https://www.ss.lv"
@@ -31,7 +32,7 @@ def map():
     ).add_to(result_map)
 
     today = date.today()
-    with open(today.strftime("%m_%d_%Y")+".json", "r") as openfile:
+    with open(f"dumps/{get_latest_date()}.json", "r") as openfile:
         flats = json.load(openfile)
 
     skip_daily = request.args.get("skip_daily")
@@ -69,3 +70,11 @@ def map():
         ).add_to(result_map)
 
     return result_map.get_root().render()
+
+def get_latest_date():
+    filenames = os.listdir("dumps/")
+    dates = []
+    for f in filenames:
+        dates.append(datetime.strptime(f[:-5], "%d_%m_%Y"))
+    dates.sort()
+    return dates[-1].strftime("%d_%m_%Y")

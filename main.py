@@ -128,5 +128,5 @@ class MyEncoder(json.JSONEncoder):
             return o.__dict__
 
 today = date.today()
-with open(today.strftime("%m_%d_%Y")+".json", "w") as out_file:
+with open(today.strftime("dumps/%d_%m_%Y")+".json", "w") as out_file:
     out_file.write(json.dumps(flats, cls=MyEncoder))
