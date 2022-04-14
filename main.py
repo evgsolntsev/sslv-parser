@@ -2,12 +2,12 @@
 
 import json
 import time
+from datetime import date
 
 import argparse
 import requests
 
 parser = argparse.ArgumentParser(description="Parse ss.lv flats for rent.")
-parser.add_argument("--area", type=str, default="centre", help="area name")
 parser.add_argument("--gently", type=bool, default=True, help="wait a bit after each request")
 parser.add_argument("--verbose", type=bool, default=True, help="verbose output")
 parser.add_argument("--only-first", type=bool, default=False, help="analize only first page")
@@ -28,7 +28,7 @@ def wait(f):
 
 BASE_URL = "https://www.ss.lv"
 SESSION = requests.Session()
-url = f"/ru/real-estate/flats/riga/{args.area}/hand_over/"
+url = f"/ru/real-estate/flats/riga/all/hand_over/"
 
 @wait
 def get(link):
@@ -41,14 +41,13 @@ def post(link, data):
     return SESSION.post(f"{BASE_URL}{link}", data=data)
 
 class Flat:
-    def __init__(self, link, address, rooms, meters, floor, home_type, price_per_meter, price):
+    def __init__(self, link, _, address, rooms, meters, floor, home_type, price):
         self.link = link
         self.address = address
         self.rooms = rooms
         self.meters = meters
         self.floor = floor
         self.home_type = home_type
-        self.price_per_meter = price_per_meter
         self.price = price
         self.coordinates = [0, 0]
         self.description = ""
@@ -78,13 +77,18 @@ def process_flat(text):
     link_start_index = text.find("<a href=\"") + 9
     link_end_index = text.find("\" ", link_start_index)
     link = text[link_start_index: link_end_index]
+    if "other" in link:
+        return None
 
     text = text[link_end_index:]
 
     fields = text.split("</td>")[-8:-1]
     fields_processed = []
     for f in fields:
-        fields_processed.append(f[f.find(">")+1:])
+        tmp = f
+        while ">" in tmp:
+            tmp = tmp[tmp.find(">")+1:]
+        fields_processed.append(tmp)
 
     flat = Flat(link, *fields_processed)
     flat.init()
@@ -97,7 +101,10 @@ def process_html(text):
     flats_list = text.split("</tr>")[1:-1]
     result = []
     for f in flats_list:
-        result.append(process_flat(f))
+        tmp = process_flat(f)
+        if tmp is None:
+            continue
+        result.append(tmp)
 
     return result
 
@@ -120,5 +127,6 @@ class MyEncoder(json.JSONEncoder):
         def default(self, o):
             return o.__dict__
 
-with open("dump.json", "w") as out_file:
+today = date.today()
+with open(today.strftime("%m_%d_%Y")+".json", "w") as out_file:
     out_file.write(json.dumps(flats, cls=MyEncoder))
