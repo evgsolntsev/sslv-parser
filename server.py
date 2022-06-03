@@ -14,7 +14,7 @@ app = Flask(__name__)
 def root():
     return render_template("root.html", date=get_latest_date())
 
-office_coordinates=[56.9615532443497, 24.112381565832365]
+office_coordinates=[56.951790, 24.124830]
 BASE_URL = "https://www.ss.lv"
 
 def parse_price(text):
