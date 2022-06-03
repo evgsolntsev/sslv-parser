@@ -21,7 +21,7 @@ BASE_URL = "https://www.ss.lv"
 with open('dump.json', 'r') as openfile:
     flats = json.load(openfile)
 
-office_coordinates=[56.9615532443497, 24.112381565832365]
+office_coordinates=[56.951790, 24.124830]
 
 result_map = folium.Map(location=office_coordinates, zoom_start=14, control_scale=True)
 folium.Marker(
